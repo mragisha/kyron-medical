@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kyron Medical — Patient Portal</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    header {
+      background: #1d4ed8;
+      color: #fff;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,.18);
+      flex-shrink: 0;
+    }
+    header svg { flex-shrink: 0; }
+    header h1 { font-size: 1.2rem; font-weight: 600; letter-spacing: .02em; flex: 1; }
+    header span.tagline {
+      font-size: .8rem;
+      font-weight: 400;
+      opacity: .8;
+      margin-left: 4px;
+    }
+
+    #header-voice-btn {
+      background: rgba(255,255,255,.18);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.4);
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: .85rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background .15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    #header-voice-btn:hover:not(:disabled) { background: rgba(255,255,255,.28); }
+    #header-voice-btn:disabled { opacity: .5; cursor: default; }
+
+    /* ── Main layout ─────────────────────────────────────────── */
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      padding: 24px 16px;
+    }
+
+    .chat-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+      width: 100%;
+      max-width: 760px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Messages area ────────────────────────────────────────── */
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+      max-height: calc(100vh - 260px);
+    }
+
+    .bubble-row {
+      display: flex;
+      flex-direction: column;
+    }
+    .bubble-row.user { align-items: flex-end; }
+    .bubble-row.assistant { align-items: flex-start; }
+
+    .bubble {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: .93rem;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+    .bubble-row.user .bubble {
+      background: #1d4ed8;
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .bubble-row.assistant .bubble {
+      background: #e8eef9;
+      color: #1a202c;
+      border-bottom-left-radius: 4px;
+    }
+
+    .bubble-meta {
+      font-size: .7rem;
+      color: #94a3b8;
+      margin-top: 3px;
+      padding: 0 4px;
+    }
+
+    /* ── Slots panel ──────────────────────────────────────────── */
+    .slots-panel {
+      background: #f8faff;
+      border: 1px solid #c7d7f5;
+      border-radius: 10px;
+      padding: 14px 16px;
+      width: 100%;
+      max-width: 560px;
+      font-size: .88rem;
+    }
+    .slots-panel h3 {
+      font-size: .95rem;
+      font-weight: 600;
+      color: #1d4ed8;
+      margin-bottom: 10px;
+    }
+    .slots-filter-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    .slots-filter-row select,
+    .slots-filter-row input[type="date"] {
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: .85rem;
+      font-family: inherit;
+      background: #fff;
+      flex: 1;
+      min-width: 130px;
+    }
+    .slots-filter-row button {
+      background: #1d4ed8;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-size: .85rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .slots-filter-row button:hover { background: #1e40af; }
+
+    .slot-list { display: flex; flex-direction: column; gap: 6px; }
+    .slot-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+      border: 1px solid #dde6f7;
+      border-radius: 8px;
+      padding: 8px 12px;
+      gap: 10px;
+    }
+    .slot-card .slot-info { flex: 1; }
+    .slot-card .slot-doctor { font-weight: 600; color: #1e293b; }
+    .slot-card .slot-specialty { font-size: .78rem; color: #64748b; }
+    .slot-card .slot-time { font-size: .83rem; color: #334155; margin-top: 2px; }
+    .slot-card .book-btn {
+      background: #16a34a;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: .83rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .slot-card .book-btn:hover:not(:disabled) { background: #15803d; }
+    .slot-card .book-btn:disabled { opacity: .5; cursor: default; }
+
+    /* ── Patient info form inside slots panel ─────────────────── */
+    .patient-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #e2e8f0;
+    }
+    .patient-fields label {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      font-size: .78rem;
+      color: #475569;
+      font-weight: 500;
+    }
+    .patient-fields label.full-width { grid-column: 1 / -1; }
+    .patient-fields input {
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 6px 9px;
+      font-size: .85rem;
+      font-family: inherit;
+      background: #fff;
+    }
+    .patient-fields input:focus { outline: none; border-color: #1d4ed8; }
+    .patient-fields .sms-row {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .83rem;
+      color: #334155;
+      font-weight: normal;
+    }
+    .patient-fields .sms-row input[type="checkbox"] { width: 15px; height: 15px; }
+
+    .slots-reason-row {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .slots-reason-row input {
+      flex: 1;
+      min-width: 200px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: .85rem;
+      font-family: inherit;
+    }
+
+    .slots-empty {
+      color: #64748b;
+      font-size: .85rem;
+      padding: 8px 0;
+    }
+
+    /* ── Context banners / action buttons ───────────────────── */
+    .context-bar {
+      padding: 8px 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      border-top: 1px solid #e2e8f0;
+      min-height: 0;
+    }
+    .context-bar:empty { display: none; }
+
+    .ctx-btn {
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: .85rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: background .15s, opacity .15s;
+    }
+    .ctx-btn:disabled { opacity: .5; cursor: default; }
+    .ctx-btn.blue  { background: #1d4ed8; color: #fff; }
+    .ctx-btn.blue:hover:not(:disabled)  { background: #1e40af; }
+    .ctx-btn.green { background: #16a34a; color: #fff; }
+    .ctx-btn.green:hover:not(:disabled) { background: #15803d; }
+
+    .banner-completed {
+      background: #dcfce7;
+      border: 1px solid #86efac;
+      color: #166534;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: .88rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── Input area ───────────────────────────────────────────── */
+    .input-area {
+      padding: 12px 16px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    #user-input {
+      flex: 1;
+      resize: none;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: .93rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .15s;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    #user-input:focus { border-color: #1d4ed8; }
+    #user-input::placeholder { color: #94a3b8; }
+
+    #send-btn {
+      background: #1d4ed8;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: .93rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, opacity .15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      height: 42px;
+      flex-shrink: 0;
+    }
+    #send-btn:hover:not(:disabled) { background: #1e40af; }
+    #send-btn:disabled { opacity: .55; cursor: default; }
+
+    /* ── Spinner ──────────────────────────────────────────────── */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .65s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── System message ───────────────────────────────────────── */
+    .sys-msg {
+      text-align: center;
+      color: #64748b;
+      font-size: .8rem;
+      padding: 4px 0;
+    }
+
+    /* ── Scrollbar ────────────────────────────────────────────── */
+    #messages::-webkit-scrollbar { width: 6px; }
+    #messages::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+    <rect width="28" height="28" rx="6" fill="white" fill-opacity=".15"/>
+    <rect x="12" y="5" width="4" height="18" rx="2" fill="white"/>
+    <rect x="5" y="12" width="18" height="4" rx="2" fill="white"/>
+  </svg>
+  <h1>Kyron Medical <span class="tagline">Patient Portal</span></h1>
+  <!-- Persistent voice call button — always visible -->
+  <button id="header-voice-btn" aria-label="Switch to voice call">
+    📞 Voice Call
+  </button>
+</header>
+
+<main>
+  <div class="chat-card">
+    <div id="messages" role="log" aria-live="polite" aria-label="Chat conversation"></div>
+
+    <div class="context-bar" id="context-bar"></div>
+
+    <div class="input-area">
+      <textarea
+        id="user-input"
+        placeholder="Type your message…"
+        rows="1"
+        aria-label="Message input"
+      ></textarea>
+      <button id="send-btn" aria-label="Send message">Send</button>
+    </div>
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── State ──────────────────────────────────────────────────── */
+  let sessionId = null;
+  let loading = false;
+  let doctorsList = [];   // cache of GET /api/schedule/doctors
+
+  /* ── DOM refs ───────────────────────────────────────────────── */
+  const messagesEl      = document.getElementById('messages');
+  const contextBar      = document.getElementById('context-bar');
+  const inputEl         = document.getElementById('user-input');
+  const sendBtn         = document.getElementById('send-btn');
+  const headerVoiceBtn  = document.getElementById('header-voice-btn');
+
+  /* ── Helpers ─────────────────────────────────────────────────── */
+  function scrollToBottom() {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function formatTime(isoStr) {
+    const d = isoStr ? new Date(isoStr) : new Date();
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function formatDateTime(isoStr) {
+    const d = new Date(isoStr);
+    return d.toLocaleString([], {
+      weekday: 'short', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  function appendMessage(role, content, timestamp) {
+    const row = document.createElement('div');
+    row.className = 'bubble-row ' + role;
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = content;
+    const meta = document.createElement('div');
+    meta.className = 'bubble-meta';
+    meta.textContent = (role === 'user' ? 'You' : 'Kyron') + ' · ' + formatTime(timestamp);
+    row.appendChild(bubble);
+    row.appendChild(meta);
+    messagesEl.appendChild(row);
+    scrollToBottom();
+  }
+
+  function appendSystem(text) {
+    const el = document.createElement('div');
+    el.className = 'sys-msg';
+    el.textContent = text;
+    messagesEl.appendChild(el);
+    scrollToBottom();
+  }
+
+  function appendNode(node) {
+    messagesEl.appendChild(node);
+    scrollToBottom();
+  }
+
+  function setLoading(isLoading) {
+    loading = isLoading;
+    sendBtn.disabled = isLoading;
+    inputEl.disabled = isLoading;
+    sendBtn.innerHTML = isLoading
+      ? '<span class="spinner" aria-hidden="true"></span> Sending…'
+      : 'Send';
+  }
+
+  /* ── Voice call ──────────────────────────────────────────────── */
+  async function initiateVoiceCall(btn) {
+    if (!sessionId) {
+      appendSystem('Session not ready — please wait a moment and try again.');
+      return;
+    }
+
+    // Ask for a phone number to dial
+    const customerPhone = prompt(
+      'Enter the phone number Vapi should call (E.164 format, e.g. +19195551234):'
+    );
+    if (!customerPhone || !customerPhone.trim()) return;   // user cancelled
+
+    const origText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Connecting…';
+    try {
+      const res = await fetch('/api/voice/initiate-call', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, customerPhone: customerPhone.trim() }),
+      });
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.detail || 'HTTP ' + res.status);
+      }
+      const data = await res.json();
+      appendSystem('📞 Voice call initiated — status: ' + (data.status || 'dialing') + '. Call ID: ' + data.callId);
+      btn.textContent = '✓ Call Initiated';
+      setTimeout(() => { btn.disabled = false; btn.textContent = origText; }, 5000);
+    } catch (err) {
+      appendSystem('Could not start voice call: ' + err.message);
+      btn.disabled = false;
+      btn.textContent = origText;
+    }
+  }
+
+  headerVoiceBtn.addEventListener('click', () => initiateVoiceCall(headerVoiceBtn));
+
+  /* ── Slots panel ─────────────────────────────────────────────── */
+  async function loadDoctors() {
+    if (doctorsList.length) return doctorsList;
+    const res = await fetch('/api/schedule/doctors');
+    if (!res.ok) throw new Error('Could not load doctors (HTTP ' + res.status + ')');
+    const data = await res.json();
+    doctorsList = data.doctors || [];
+    return doctorsList;
+  }
+
+  async function loadSlots(doctorId, date) {
+    const params = new URLSearchParams();
+    if (doctorId) params.set('doctorId', doctorId);
+    if (date)     params.set('date', date);
+    const res = await fetch('/api/schedule/slots?' + params.toString());
+    if (!res.ok) throw new Error('Could not load slots (HTTP ' + res.status + ')');
+    const data = await res.json();
+    return (data.slots || []).filter(s => !s.booked);
+  }
+
+  async function bookSlot(slotId, patientFields, reason, btn) {
+    if (!sessionId) return;
+    if (!reason.trim()) { alert('Please enter a reason for your visit.'); return; }
+    if (!patientFields.email.trim()) { alert('Please enter your email address so we can send a confirmation.'); return; }
+    if (!patientFields.firstName.trim() || !patientFields.lastName.trim()) {
+      alert('Please enter your first and last name.'); return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Booking…';
+    try {
+      // 1. Book the slot
+      const res = await fetch('/api/schedule/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, slotId, reason: reason.trim() }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'HTTP ' + res.status);
+      }
+      const data = await res.json();
+      const appt = data.appointment;
+      btn.textContent = '✓ Booked';
+      appendSystem('✅ Appointment confirmed! ID: ' + appt.id);
+
+      // 2. Send confirmation email via notifications module
+      const patient = {
+        id: sessionId,
+        firstName: patientFields.firstName.trim(),
+        lastName:  patientFields.lastName.trim(),
+        dob:       patientFields.dob || '1900-01-01',
+        phone:     patientFields.phone.trim() || '+10000000000',
+        email:     patientFields.email.trim(),
+        smsOptIn:  patientFields.smsOptIn,
+      };
+      try {
+        const notifyRes = await fetch('/api/notify/email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ appointment: appt, patient }),
+        });
+        const notifyData = await notifyRes.json().catch(() => ({}));
+        if (notifyData.success) {
+          appendSystem('📧 Confirmation email sent to ' + patient.email);
+        } else {
+          appendSystem('⚠️ Appointment booked, but confirmation email could not be sent. Please contact the office.');
+        }
+      } catch (_) {
+        appendSystem('⚠️ Appointment booked, but email notification failed.');
+      }
+
+      renderContextBar('COMPLETED');
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Book';
+      appendSystem('Booking failed: ' + err.message);
+    }
+  }
+
+  async function showSlotsPanel() {
+    appendSystem('Loading available appointment slots…');
+    let doctors;
+    try {
+      doctors = await loadDoctors();
+    } catch (err) {
+      appendSystem('Error: ' + err.message);
+      return;
+    }
+
+    const panel = document.createElement('div');
+    panel.className = 'bubble-row assistant';
+
+    const inner = document.createElement('div');
+    inner.className = 'slots-panel';
+    inner.innerHTML = '<h3>Available Appointment Slots</h3>';
+
+    /* Filter row */
+    const filterRow = document.createElement('div');
+    filterRow.className = 'slots-filter-row';
+
+    const docSelect = document.createElement('select');
+    docSelect.innerHTML = '<option value="">All doctors</option>';
+    doctors.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.id;
+      opt.textContent = d.name + ' — ' + d.specialty;
+      docSelect.appendChild(opt);
+    });
+
+    const dateInput = document.createElement('input');
+    dateInput.type = 'date';
+    dateInput.min = new Date().toISOString().split('T')[0];
+    dateInput.setAttribute('aria-label', 'Filter by date');
+
+    const searchBtn = document.createElement('button');
+    searchBtn.textContent = 'Search';
+
+    filterRow.appendChild(docSelect);
+    filterRow.appendChild(dateInput);
+    filterRow.appendChild(searchBtn);
+    inner.appendChild(filterRow);
+
+    /* Patient info fields */
+    const patientSection = document.createElement('div');
+    patientSection.className = 'patient-fields';
+    patientSection.innerHTML = `
+      <label>First name <input type="text" id="pf-first" placeholder="Jane" /></label>
+      <label>Last name  <input type="text" id="pf-last"  placeholder="Smith" /></label>
+      <label class="full-width">Email address (confirmation will be sent here)
+        <input type="email" id="pf-email" placeholder="jane@example.com" />
+      </label>
+      <label>Phone (E.164) <input type="tel" id="pf-phone" placeholder="+19195551234" /></label>
+      <label>Date of birth  <input type="date" id="pf-dob" /></label>
+      <label class="sms-row full-width">
+        <input type="checkbox" id="pf-sms" />
+        Send SMS reminders to my phone number
+      </label>
+    `;
+    inner.appendChild(patientSection);
+
+    /* Reason input (shared) */
+    const reasonRow = document.createElement('div');
+    reasonRow.className = 'slots-reason-row';
+    const reasonInput = document.createElement('input');
+    reasonInput.type = 'text';
+    reasonInput.placeholder = 'Reason for visit (required before booking)';
+    reasonInput.setAttribute('aria-label', 'Reason for visit');
+    reasonRow.appendChild(reasonInput);
+    inner.appendChild(reasonRow);
+
+    /* Slot list container */
+    const slotList = document.createElement('div');
+    slotList.className = 'slot-list';
+    slotList.style.marginTop = '10px';
+    inner.appendChild(slotList);
+
+    /* Render slots */
+    const doctorMap = {};
+    doctors.forEach(d => { doctorMap[d.id] = d; });
+
+    async function renderSlots() {
+      slotList.innerHTML = '';
+      const loadingEl = document.createElement('div');
+      loadingEl.className = 'slots-empty';
+      loadingEl.textContent = 'Loading slots…';
+      slotList.appendChild(loadingEl);
+
+      let slots;
+      try {
+        slots = await loadSlots(docSelect.value, dateInput.value);
+      } catch (err) {
+        slotList.innerHTML = '';
+        const errEl = document.createElement('div');
+        errEl.className = 'slots-empty';
+        errEl.textContent = 'Error loading slots: ' + err.message;
+        slotList.appendChild(errEl);
+        return;
+      }
+
+      slotList.innerHTML = '';
+      if (!slots.length) {
+        const empty = document.createElement('div');
+        empty.className = 'slots-empty';
+        empty.textContent = 'No available slots match your criteria. Try a different date or doctor.';
+        slotList.appendChild(empty);
+        return;
+      }
+
+      // Show at most 10 slots to keep the panel manageable
+      slots.slice(0, 10).forEach(slot => {
+        const doc = doctorMap[slot.doctorId] || {};
+        const card = document.createElement('div');
+        card.className = 'slot-card';
+
+        const info = document.createElement('div');
+        info.className = 'slot-info';
+        info.innerHTML =
+          '<div class="slot-doctor">' + (doc.name || 'Unknown doctor') + '</div>' +
+          '<div class="slot-specialty">' + (doc.specialty || '') + '</div>' +
+          '<div class="slot-time">🕒 ' + formatDateTime(slot.datetime) +
+          ' (' + slot.durationMinutes + ' min)</div>';
+
+        const bookBtn = document.createElement('button');
+        bookBtn.className = 'book-btn';
+        bookBtn.textContent = 'Book';
+        bookBtn.addEventListener('click', () => {
+          const patientFields = {
+            firstName: (inner.querySelector('#pf-first') || {}).value || '',
+            lastName:  (inner.querySelector('#pf-last')  || {}).value || '',
+            email:     (inner.querySelector('#pf-email') || {}).value || '',
+            phone:     (inner.querySelector('#pf-phone') || {}).value || '',
+            dob:       (inner.querySelector('#pf-dob')   || {}).value || '',
+            smsOptIn:  !!(inner.querySelector('#pf-sms') || {}).checked,
+          };
+          bookSlot(slot.id, patientFields, reasonInput.value, bookBtn);
+        });
+
+        card.appendChild(info);
+        card.appendChild(bookBtn);
+        slotList.appendChild(card);
+      });
+
+      if (slots.length > 10) {
+        const more = document.createElement('div');
+        more.className = 'slots-empty';
+        more.textContent = '+ ' + (slots.length - 10) + ' more slots — narrow the filter to see them.';
+        slotList.appendChild(more);
+      }
+    }
+
+    searchBtn.addEventListener('click', renderSlots);
+
+    panel.appendChild(inner);
+    appendNode(panel);
+
+    // Auto-load all unfiltered slots on open
+    await renderSlots();
+  }
+
+  /* ── Context bar rendering ───────────────────────────────────── */
+  function renderContextBar(intent) {
+    contextBar.innerHTML = '';
+
+    if (intent === 'SCHEDULING') {
+      const btn = document.createElement('button');
+      btn.className = 'ctx-btn blue';
+      btn.textContent = '📅 View Available Slots';
+      btn.addEventListener('click', () => {
+        btn.disabled = true;
+        showSlotsPanel().finally(() => { btn.disabled = false; });
+      });
+      contextBar.appendChild(btn);
+
+      // Also show voice button in context bar for easy access
+      const vBtn = document.createElement('button');
+      vBtn.className = 'ctx-btn green';
+      vBtn.textContent = '📞 Switch to Voice Call';
+      vBtn.addEventListener('click', () => initiateVoiceCall(vBtn));
+      contextBar.appendChild(vBtn);
+    }
+
+    if (intent === 'CALL_REQUESTED') {
+      const btn = document.createElement('button');
+      btn.className = 'ctx-btn green';
+      btn.textContent = '📞 Switch to Voice Call';
+      btn.addEventListener('click', () => initiateVoiceCall(btn));
+      contextBar.appendChild(btn);
+    }
+
+    if (intent === 'COMPLETED') {
+      const banner = document.createElement('div');
+      banner.className = 'banner-completed';
+      banner.innerHTML = '&#10003; Your appointment has been confirmed. A confirmation will be sent to you shortly.';
+      contextBar.appendChild(banner);
+    }
+  }
+
+  /* ── API: create session ─────────────────────────────────────── */
+  async function createSession() {
+    appendSystem('Connecting to Kyron Medical…');
+    try {
+      const res = await fetch('/api/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      sessionId = data.sessionId;
+      appendSystem('Connected. How can we help you today?');
+    } catch (err) {
+      appendSystem('Unable to connect. Please refresh and try again.');
+      console.error('Session creation error:', err);
+    }
+  }
+
+  /* ── API: send chat message ──────────────────────────────────── */
+  async function sendMessage(message) {
+    if (!message.trim()) return;
+    if (!sessionId) {
+      appendSystem('Session not ready. Please wait or refresh the page.');
+      return;
+    }
+
+    appendMessage('user', message);
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, message }),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+
+      const reply     = data.reply  || '(no reply)';
+      const intent    = data.intent || null;
+      const timestamp = data.session && data.session.lastActiveAt
+        ? data.session.lastActiveAt : null;
+
+      appendMessage('assistant', reply, timestamp);
+      renderContextBar(intent);
+
+      // Auto-open slots panel when AI suggests scheduling
+      if (intent === 'SCHEDULING') {
+        showSlotsPanel();
+      }
+    } catch (err) {
+      appendMessage('assistant', 'Sorry, something went wrong. Please try again.');
+      console.error('Chat error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /* ── Event listeners ─────────────────────────────────────────── */
+  sendBtn.addEventListener('click', () => {
+    const msg = inputEl.value.trim();
+    if (!msg || loading) return;
+    inputEl.value = '';
+    inputEl.style.height = 'auto';
+    sendMessage(msg);
+  });
+
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendBtn.click();
+    }
+  });
+
+  inputEl.addEventListener('input', () => {
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+  });
+
+  /* ── Boot ────────────────────────────────────────────────────── */
+  createSession();
+})();
+</script>
+</body>
+</html>

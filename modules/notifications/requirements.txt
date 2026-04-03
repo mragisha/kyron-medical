@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+resend
+twilio
+python-dotenv
+pydantic
+httpx
+pytest
