@@ -2,6 +2,8 @@
 
 A modular AI-powered patient portal that lets patients book appointments through a chat interface or an outbound voice call. Built entirely in Python (FastAPI + uvicorn). No Node.js.
 
+**Live Demo:** https://kyron-medical-981517037702.us-central1.run.app
+
 ---
 
 ## Table of Contents
@@ -21,6 +23,7 @@ A modular AI-powered patient portal that lets patients book appointments through
 - [Local Development with ngrok](#local-development-with-ngrok)
 - [API Reference](#api-reference)
 - [Data Models](#data-models)
+- [Deployment](#deployment)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -578,6 +581,33 @@ The `intent` field returned by `/api/chat`:
   "createdAt": "2026-03-18T10:00:00Z",
   "lastActiveAt": "2026-03-18T10:05:00Z"
 }
+```
+
+---
+
+## Deployment
+
+This app is containerized with Docker and deployed on **Google Cloud Run**.
+
+| Resource | Value |
+|---|---|
+| Live URL | https://kyron-medical-981517037702.us-central1.run.app |
+| Platform | Google Cloud Run (us-central1) |
+| Container Registry | Google Artifact Registry |
+| Base image | python:3.11-slim |
+
+### Redeploy after code changes
+
+```bash
+# 1. Rebuild for linux/amd64 (required for Cloud Run from a Mac)
+docker buildx build --platform linux/amd64 \
+  -t us-central1-docker.pkg.dev/ai-pateint-intake-agent/kyron-repo/kyron-medical:latest \
+  --push .
+
+# 2. Deploy the new image
+gcloud run deploy kyron-medical \
+  --image us-central1-docker.pkg.dev/ai-pateint-intake-agent/kyron-repo/kyron-medical:latest \
+  --region us-central1
 ```
 
 ---
