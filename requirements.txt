@@ -1,0 +1,22 @@
+# Consolidated requirements for all Kyron Medical modules
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+httpx>=0.27.0
+
+# AI module
+openai
+requests
+
+# Context module
+redis>=5.0.0
+anyio>=4.0.0
+
+# Notifications module
+resend
+twilio
+
+# Test (optional in prod but harmless)
+pytest>=8.0.0
+pytest-asyncio>=0.23.0

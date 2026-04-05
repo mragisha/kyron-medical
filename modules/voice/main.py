@@ -174,8 +174,30 @@ def initiate_call(body: InitiateCallRequest) -> InitiateCallResponse:
 
     today_str = datetime.now().strftime("%Y-%m-%d")
 
+    patient_name = ""
+    if session.patient:
+        patient_name = f"{session.patient.firstName} {session.patient.lastName}".strip()
+
     system_prompt = (
-        "Your are technical recruiter at Google, you need to say sorry for the interviewer not making to the call and ask for availability to discuss a time for full time role. Congratulate the Candidate Abhinav for performing well in the technical round. Once they tell the availability just say 'ok great, I'll set up the meeting and send a calendar invite to you.'\n\n"
+        "You are a helpful medical assistant for Kyron Medical. "
+        "You are continuing a conversation that the patient already started via text chat. "
+        "Your goal is to seamlessly pick up where the chat left off — do NOT repeat questions "
+        "that were already answered in the chat history below.\n\n"
+        "IMPORTANT RULES:\n"
+        "- Speak naturally and conversationally, as if you were already mid-conversation.\n"
+        "- If the patient already provided their name, symptoms, or other details in the chat, "
+        "acknowledge that you have that information and build on it.\n"
+        "- If an appointment has not yet been booked, help the patient schedule one using the "
+        "available doctors and slots.\n"
+        "- If the appointment is already booked, confirm the details and ask if there's anything else.\n"
+        "- Keep responses concise — this is a phone call, not a text conversation.\n"
+        f"- Today's date is {today_str}.\n\n"
+        "AVAILABLE DOCTORS:\n"
+        f"{doctors_str}\n\n"
+        "CHAT HISTORY (most recent messages from the text conversation):\n"
+        f"{context_str if context_str else 'No prior chat history available.'}\n\n"
+        "Use the request_appointment tool once you have confirmed the doctor, preferred date, "
+        "preferred time, and patient contact details."
     )
 
     logger.info(system_prompt)
@@ -251,7 +273,11 @@ def initiate_call(body: InitiateCallRequest) -> InitiateCallResponse:
         "customer":      {"number": customer_phone},
         "metadata":      {"sessionId": body.sessionId},
         "assistant": {
-            "firstMessage": "Hi Abhinav, this is Laurie from Google, in regard to your interview process and firstly congratulations on clearing your first round. Since this is an Early career we would be discussing your relocation to Mountain view, California. When would be a good time to discuss this further with Bezoz - our talent recruiter?",
+            "firstMessage": (
+                f"Hi{' ' + patient_name if patient_name else ''}, this is your Kyron Medical assistant. "
+                "I can see you've been chatting with us — I'm calling to help you continue from where we left off. "
+                "How can I assist you today?"
+            ),
             # transcriber — tells Vapi how to convert patient speech to text
             "transcriber": {
                 "provider": "deepgram",
