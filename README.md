@@ -2,7 +2,7 @@
 
 A modular AI-powered patient portal that lets patients book appointments through a chat interface or an outbound voice call. Built entirely in Python (FastAPI + uvicorn). No Node.js.
 
-**Live Demo:** https://kyron-medical-981517037702.us-central1.run.app
+**Live Demo:** https://mediassist-981517037702.us-central1.run.app
 
 ---
 
@@ -591,7 +591,7 @@ This app is containerized with Docker and deployed on **Google Cloud Run**.
 
 | Resource | Value |
 |---|---|
-| Live URL | https://kyron-medical-981517037702.us-central1.run.app |
+| Live URL | https://mediassist-981517037702.us-central1.run.app |
 | Platform | Google Cloud Run (us-central1) |
 | Container Registry | Google Artifact Registry |
 | Base image | python:3.11-slim |

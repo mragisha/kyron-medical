@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kyron Medical — Patient Portal</title>
+  <title>MediAssist — Patient Portal</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -376,7 +376,7 @@
     <rect x="12" y="5" width="4" height="18" rx="2" fill="white"/>
     <rect x="5" y="12" width="18" height="4" rx="2" fill="white"/>
   </svg>
-  <h1>Kyron Medical <span class="tagline">Patient Portal</span></h1>
+  <h1>MediAssist <span class="tagline">Patient Portal</span></h1>
   <!-- Persistent voice call button — always visible -->
   <button id="header-voice-btn" aria-label="Switch to voice call">
     📞 Voice Call
@@ -791,7 +791,7 @@
 
   /* ── API: create session ─────────────────────────────────────── */
   async function createSession() {
-    appendSystem('Connecting to Kyron Medical…');
+    appendSystem('Connecting to MediAssist…');
     try {
       const res = await fetch('/api/session', {
         method: 'POST',
